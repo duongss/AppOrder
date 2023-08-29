@@ -16,4 +16,7 @@ interface AppDao {
 
     @Update
     fun update(order: Order)
+
+    @Query("DELETE FROM `order`")
+    fun deleteAllData()
 }

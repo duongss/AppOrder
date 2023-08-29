@@ -8,4 +8,6 @@ interface FileDataRepository {
     fun insertOrder(it: Order): Long
 
     fun updateOrder(it: Order)
+
+    suspend fun deleteAll()
 }

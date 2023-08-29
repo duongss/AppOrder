@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,11 +34,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -48,6 +52,7 @@ import com.example.apporder.room.model.Order
 import com.example.apporder.ui.theme.AppOrderTheme
 import com.example.apporder.ui.theme.color4
 import com.example.apporder.ui.theme.color5
+import com.example.apporder.ui.theme.color6
 import com.example.apporder.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -87,10 +92,16 @@ class MainActivity() : ComponentActivity() {
                         Row(Modifier.fillMaxWidth())
                         {
                             Text(
-                                text = "Welcome!", style = TextStyle(fontSize = 24.sp)
+                                text = getString(R.string.app_name),
+                                style = TextStyle(fontSize = 24.sp),
+                                modifier = Modifier.weight(1f)
                             )
                             ComposeLottieAnimation(
-                                modifier = Modifier.fillMaxWidth() .size(50.dp)
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clickable {
+                                        viewModel.resetData()
+                                    }
                             )
                         }
 
@@ -114,25 +125,44 @@ class MainActivity() : ComponentActivity() {
                         }
                     }
 
-                    Divider(
-                        color = androidx.compose.ui.graphics.Color.Black,
-                        thickness = 1.dp, // Độ dày của đường thẳng
+                    ConstraintLayout(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp) // Khoảng cách đường thẳng với các thành phần xung quanh
-                    )
+                            .padding(vertical = 8.dp)
+                    ) {
+                        val (divider, stageText, gridAbove) = createRefs()
 
-                    Image(
-                        painter = painterResource(id = imageStage), // Tải hình ảnh từ tài nguyên
-                        contentDescription = "State",
-                        Modifier
-                            .fillMaxWidth()
-                            .size(80.dp),
-                        alignment = Alignment.Center,
-                    )
+                        Divider(
+                            color = Color.Black,
+                            thickness = 1.dp, // Độ dày của đường thẳng
+                            modifier = Modifier
+                                .constrainAs(divider) {
+                                    top.linkTo(parent.top)
+                                }
+                                .fillMaxWidth()
+                        )
 
+                        Text(
+                            text = "Sân Khấu",
+                            style = TextStyle(fontSize = 24.sp, color = color6),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 10.dp)
+                                .constrainAs(stageText) {
+                                    top.linkTo(divider.bottom)
+                                },
+                            textAlign = TextAlign.Center
+                        )
 
-                    PhotoGrid(viewModel)
+                        PhotoGrid(viewModel,
+                            Modifier
+                                .padding(top = 22.dp)
+                                .constrainAs(gridAbove) {
+                                    top.linkTo(stageText.bottom)
+                                    bottom.linkTo(parent.bottom)
+                                })
+
+                    }
 
                 }
 
@@ -141,116 +171,39 @@ class MainActivity() : ComponentActivity() {
     }
 
     @Composable
-    fun PhotoGrid(viewModel: MainViewModel = viewModel()) {
+    fun PhotoGrid(viewModel: MainViewModel, modifier: Modifier) {
         val listLive by viewModel.listData.observeAsState()
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(6),
-            contentPadding = PaddingValues(top = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = modifier,
+            columns = GridCells.Fixed(12),
+            contentPadding = PaddingValues(top = 18.dp, bottom = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             items(listLive ?: arrayListOf(), key = { it.id }, span = { item ->
                 val span = when (item.type) {
                     Order.TYPE_DOUBLE_CHAIR -> {
-                        2
+                        4
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
+                        6
+                    }
+
+                    Order.TYPE_DOUBLE_CHAIR_VIP -> {
                         3
                     }
 
                     else -> {
-                        1
+                        2
                     }
                 }
                 GridItemSpan(span)
             }) { data ->
                 when (data.type) {
                     Order.TYPE_DOUBLE_CHAIR -> {
-                        AnimatedVisibility(
-                            visible = data.isShow,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Image(
-                                    painter = painterResource(id = imageTable), // Tải hình ảnh từ tài nguyên
-                                    contentDescription = "State",
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .size(sizeTable),
-                                    alignment = Alignment.Center,
-                                )
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(
-                                            top = 0.dp,
-                                            bottom = 20.dp,
-                                            start = 6.dp,
-                                            end = 6.dp
-                                        ),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(2.dp)
-                                            .weight(1f)
-                                            .clickable {
-                                                data.isSelectChart1 = !data.isSelectChart1
-                                                data.date = System.currentTimeMillis()
-                                                viewModel.updateOrder(data)
-                                            },
-                                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart1) color4 else color5)
-                                    ) {
-                                        val icon: Int = if (data.isSelectChart1) {
-                                            R.drawable.ic_chair_selected
-                                        } else {
-                                            R.drawable.ic_chair_non_select
-                                        }
-
-                                        Image(
-                                            painter = painterResource(id = icon),
-                                            alignment = Alignment.Center,
-                                            contentDescription = null, // Không cần mô tả hình ảnh
-                                            modifier = Modifier
-                                                .padding(paddingChair)
-                                                .fillMaxWidth()
-                                                .size(sizeChair) // Chiều cao của hình ảnh trong card
-                                        )
-                                    }
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(2.dp)
-                                            .weight(1f)
-                                            .clickable {
-                                                data.isSelectChart2 = !data.isSelectChart2
-                                                viewModel.updateOrder(data)
-                                            },
-                                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart2) color4 else color5)
-                                    ) {
-                                        val icon: Int = if (data.isSelectChart2) {
-                                            R.drawable.ic_chair_selected
-                                        } else {
-                                            R.drawable.ic_chair_non_select
-                                        }
-
-                                        Image(
-                                            painter = painterResource(id = icon),
-                                            alignment = Alignment.Center,
-                                            contentDescription = null, // Không cần mô tả hình ảnh
-                                            modifier = Modifier
-                                                .padding(paddingChair)
-                                                .fillMaxWidth()
-                                                .size(sizeChair) // Chiều cao của hình ảnh trong card
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
+                        DoubleChair(data, viewModel)
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
@@ -277,9 +230,44 @@ class MainActivity() : ComponentActivity() {
                                 modifier = Modifier
                                     .padding(4.dp)
                                     .fillMaxWidth()
-                                    .width(80.dp)
+                                    .width(40.dp)
                                     .height(40.dp) // Chiều cao của hình ảnh trong card
                             )
+                        }
+                    }
+
+                    Order.TYPE_DOUBLE_CHAIR_VIP -> {
+                        if (data.isSpecial) {
+                            Card(
+                                modifier = Modifier
+                                    .padding(start = 20.dp, end = 20.dp)
+                                    .clickable {
+                                        data.isSelectChartLong = !data.isSelectChartLong
+                                        data.date = System.currentTimeMillis()
+                                        viewModel.updateOrder(data)
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
+                            ) {
+                                val icon: Int = if (data.isSelectChartLong) {
+                                    R.drawable.ic_chair_selected
+                                } else {
+                                    R.drawable.ic_chair_non_select
+                                }
+
+                                Image(
+                                    painter = painterResource(id = icon),
+                                    alignment = Alignment.Center,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .graphicsLayer(rotationZ = -90f)
+                                        .padding(bottom = 40.dp, top = 40.dp)
+                                        .fillMaxWidth()
+                                        .width(30.dp)
+                                        .height(30.dp)
+                                )
+                            }
+                        } else {
+                            DoubleChair(data, viewModel)
                         }
                     }
 
@@ -306,6 +294,103 @@ class MainActivity() : ComponentActivity() {
     }
 
     @Composable
+    private fun DoubleChair(
+        data: Order,
+        viewModel: MainViewModel
+    ) {
+        AnimatedVisibility(
+            visible = data.isShow,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = imageTable),
+                        contentDescription = "State",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .size(sizeTable)
+                    )
+                    Text(
+                        text = data.stt.toString(),
+                        style = TextStyle(fontSize = 14.sp, color = Color.White),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = 0.dp,
+                            bottom = 16.dp,
+                            start = 3.dp,
+                            end = 3.dp
+                        ),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .weight(1f)
+                            .clickable {
+                                data.isSelectChart1 = !data.isSelectChart1
+                                data.date = System.currentTimeMillis()
+                                viewModel.updateOrder(data)
+                            },
+                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart1) color4 else color5)
+                    ) {
+                        val icon: Int = if (data.isSelectChart1) {
+                            R.drawable.ic_chair_selected
+                        } else {
+                            R.drawable.ic_chair_non_select
+                        }
+
+                        Image(
+                            painter = painterResource(id = icon),
+                            alignment = Alignment.Center,
+                            contentDescription = null, // Không cần mô tả hình ảnh
+                            modifier = Modifier
+                                .padding(paddingChair)
+                                .fillMaxWidth()
+                                .size(sizeChair) // Chiều cao của hình ảnh trong card
+                        )
+                    }
+                    Card(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .weight(1f)
+                            .clickable {
+                                data.isSelectChart2 = !data.isSelectChart2
+                                viewModel.updateOrder(data)
+                            },
+                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart2) color4 else color5)
+                    ) {
+                        val icon: Int = if (data.isSelectChart2) {
+                            R.drawable.ic_chair_selected
+                        } else {
+                            R.drawable.ic_chair_non_select
+                        }
+
+                        Image(
+                            painter = painterResource(id = icon),
+                            alignment = Alignment.Center,
+                            contentDescription = null, // Không cần mô tả hình ảnh
+                            modifier = Modifier
+                                .padding(paddingChair)
+                                .fillMaxWidth()
+                                .size(sizeChair) // Chiều cao của hình ảnh trong card
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
     fun ComposeLottieAnimation(modifier: Modifier) {
 
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animation_lltfclah))
@@ -314,7 +399,7 @@ class MainActivity() : ComponentActivity() {
             modifier = modifier,
             composition = composition,
             iterations = LottieConstants.IterateForever,
-            alignment = Alignment.CenterEnd
+            alignment = Alignment.CenterEnd,
         )
     }
 
