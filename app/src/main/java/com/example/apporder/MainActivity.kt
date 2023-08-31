@@ -81,7 +81,6 @@ class MainActivity() : ComponentActivity() {
         viewModel.initData()
 
         AppOrderTheme {
-            // A surface container using the 'background' color1 from the theme
             Surface(
                 modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
             ) {
@@ -188,10 +187,14 @@ class MainActivity() : ComponentActivity() {
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
-                        6
+                        5
                     }
 
                     Order.TYPE_DOUBLE_CHAIR_VIP -> {
+                        3
+                    }
+
+                    Order.TYPE_ONLY_TABLE -> {
                         3
                     }
 
@@ -206,10 +209,28 @@ class MainActivity() : ComponentActivity() {
                         DoubleChair(data, viewModel)
                     }
 
+                    Order.TYPE_ONLY_TABLE -> {
+                        Box(Modifier.height(80.dp), contentAlignment = Alignment.BottomCenter) {
+                            Image(
+                                painter = painterResource(id = imageTable),
+                                contentDescription = "State",
+                                modifier = Modifier
+                                    .size(sizeTable)
+
+                            )
+                            Text(
+                                text = data.stt.toString(),
+                                style = TextStyle(fontSize = 14.sp, color = Color.White),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .padding(bottom = 12.dp)
+                            )
+                        }
+                    }
+
                     Order.TYPE_LONG_CHAIR -> {
                         Card(
                             modifier = Modifier
-                                .padding(top = 20.dp)
                                 .clickable {
                                     data.isSelectChartLong = !data.isSelectChartLong
                                     data.date = System.currentTimeMillis()
@@ -260,9 +281,9 @@ class MainActivity() : ComponentActivity() {
                                     contentDescription = null,
                                     modifier = Modifier
                                         .graphicsLayer(rotationZ = -90f)
-                                        .padding(bottom = 40.dp, top = 40.dp)
+                                        .padding(bottom = 30.dp, top = 30.dp)
                                         .fillMaxWidth()
-                                        .width(30.dp)
+                                        .width(20.dp)
                                         .height(30.dp)
                                 )
                             }
@@ -304,22 +325,7 @@ class MainActivity() : ComponentActivity() {
             exit = fadeOut()
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(contentAlignment = Alignment.Center) {
-                    Image(
-                        painter = painterResource(id = imageTable),
-                        contentDescription = "State",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .size(sizeTable)
-                    )
-                    Text(
-                        text = data.stt.toString(),
-                        style = TextStyle(fontSize = 14.sp, color = Color.White),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
-                }
+                Table(data)
 
                 Row(
                     modifier = Modifier
@@ -387,6 +393,26 @@ class MainActivity() : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun Table(data: Order) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = imageTable),
+                contentDescription = "State",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .size(sizeTable)
+            )
+            Text(
+                text = data.stt.toString(),
+                style = TextStyle(fontSize = 14.sp, color = Color.White),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
         }
     }
 

@@ -17,7 +17,7 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
     val numberChairGrid2 = 4
     val numberDivide = 6
     val numberChairLong = 2
-    val numberAllChair = 25
+    val numberChairGrid3 = 4
 
     val numberNonOrder = MutableLiveData<Int>()
     val listData = MutableLiveData<List<Order>>()
@@ -62,6 +62,19 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
                 }
             }
 
+            for (i in 0 until numberChairGrid3) {
+                if (i == numberChairGrid2 - 1) {
+                    orderRepository.insertOrder(
+                        Order(
+                            type = Order.TYPE_DOUBLE_CHAIR_VIP,
+                            isSpecial = true
+                        )
+                    )
+                } else {
+                    orderRepository.insertOrder(Order(type = Order.TYPE_ONLY_TABLE))
+                }
+            }
+
             for (i in 0 until numberChairLong) {
                 orderRepository.insertOrder(
                     Order(type = Order.TYPE_LONG_CHAIR)
@@ -73,15 +86,15 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
 
         try {
             val countOfFalseIsSelect: Int =
-                listDb.count { order -> !order.isSelectChart1 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_LONG_CHAIR } +
-                        listDb.count { order -> !order.isSelectChart2 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_LONG_CHAIR } +
-                        listDb.count { order -> !order.isSelectChartLong && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_DOUBLE_CHAIR && (order.type == Order.TYPE_DOUBLE_CHAIR_VIP && order.isSpecial) }
+                listDb.count { order -> !order.isSelectChart1 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_LONG_CHAIR && !order.isSpecial } +
+                        listDb.count { order -> !order.isSelectChart2 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_LONG_CHAIR && !order.isSpecial } +
+                        listDb.count { order -> !order.isSelectChartLong && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_DOUBLE_CHAIR && ((order.type == Order.TYPE_DOUBLE_CHAIR_VIP && order.isSpecial) || order.type == Order.TYPE_LONG_CHAIR) }
 
             numberNonOrder.postValue(countOfFalseIsSelect)
 
             var c = 1
             listDb.forEach {
-                if (it.isShow && it.type != Order.TYPE_DIVIDE) {
+                if (it.isShow && it.type != Order.TYPE_DIVIDE && !it.isSpecial) {
                     it.stt = c
                     c++
                 }

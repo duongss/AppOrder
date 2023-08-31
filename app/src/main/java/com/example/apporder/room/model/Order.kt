@@ -26,6 +26,7 @@ open class Order(
         const val TYPE_DOUBLE_CHAIR = 1
         const val TYPE_DIVIDE = 2
         const val TYPE_DOUBLE_CHAIR_VIP = 3
+        const val TYPE_ONLY_TABLE = 4
     }
 
 }
