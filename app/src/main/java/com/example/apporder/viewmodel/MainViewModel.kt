@@ -14,10 +14,9 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(var orderRepository: FileDataRepository) : ViewModel() {
 
     val numberChairGrid1 = 9
-    val numberChairGrid2 = 4
+    val numberChairVip = 2
+    val numberChairLong = 4
     val numberDivide = 6
-    val numberChairLong = 2
-    val numberChairGrid3 = 4
 
     val numberNonOrder = MutableLiveData<Int>()
     val listData = MutableLiveData<List<Order>>()
@@ -45,41 +44,14 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
                 }
             }
 
-            for (i in 0 until numberChairGrid2) {
-                if (i == 0) {
-                    orderRepository.insertOrder(
-                        Order(isShow = false, type = Order.TYPE_DOUBLE_CHAIR_VIP)
-                    )
-                } else if (i == numberChairGrid2 - 1) {
-                    orderRepository.insertOrder(
-                        Order(
-                            type = Order.TYPE_DOUBLE_CHAIR_VIP,
-                            isSpecial = true
-                        )
-                    )
-                } else {
-                    orderRepository.insertOrder(Order(type = Order.TYPE_DOUBLE_CHAIR_VIP))
-                }
-            }
-
-            for (i in 0 until numberChairGrid3) {
-                if (i == numberChairGrid2 - 1) {
-                    orderRepository.insertOrder(
-                        Order(
-                            type = Order.TYPE_DOUBLE_CHAIR_VIP,
-                            isSpecial = true
-                        )
-                    )
-                } else {
-                    orderRepository.insertOrder(Order(type = Order.TYPE_ONLY_TABLE))
-                }
+            for (i in 0 until numberChairVip) {
+                orderRepository.insertOrder(Order(type = Order.TYPE_DOUBLE_CHAIR_VIP))
             }
 
             for (i in 0 until numberChairLong) {
-                orderRepository.insertOrder(
-                    Order(type = Order.TYPE_LONG_CHAIR)
-                )
+                orderRepository.insertOrder(Order(type = Order.TYPE_LONG_CHAIR))
             }
+
             listDb = orderRepository.getAllOrder()
 
         }

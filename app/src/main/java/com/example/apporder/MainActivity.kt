@@ -35,7 +35,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -187,17 +186,12 @@ class MainActivity() : ComponentActivity() {
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
-                        5
+                        6
                     }
 
                     Order.TYPE_DOUBLE_CHAIR_VIP -> {
-                        3
+                        6
                     }
-
-                    Order.TYPE_ONLY_TABLE -> {
-                        3
-                    }
-
                     else -> {
                         2
                     }
@@ -209,87 +203,12 @@ class MainActivity() : ComponentActivity() {
                         DoubleChair(data, viewModel)
                     }
 
-                    Order.TYPE_ONLY_TABLE -> {
-                        Box(Modifier.height(80.dp), contentAlignment = Alignment.BottomCenter) {
-                            Image(
-                                painter = painterResource(id = imageTable),
-                                contentDescription = "State",
-                                modifier = Modifier
-                                    .size(sizeTable)
-
-                            )
-                            Text(
-                                text = data.stt.toString(),
-                                style = TextStyle(fontSize = 14.sp, color = Color.White),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(bottom = 12.dp)
-                            )
-                        }
+                    Order.TYPE_DOUBLE_CHAIR_VIP -> {
+                        DoubleChair(data, viewModel, true)
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
-                        Card(
-                            modifier = Modifier
-                                .clickable {
-                                    data.isSelectChartLong = !data.isSelectChartLong
-                                    data.date = System.currentTimeMillis()
-                                    viewModel.updateOrder(data)
-                                },
-                            colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
-                        ) {
-                            val icon: Int = if (data.isSelectChartLong) {
-                                R.drawable.ic_chair_selected
-                            } else {
-                                R.drawable.ic_chair_non_select
-                            }
-
-                            Image(
-                                painter = painterResource(id = icon),
-                                alignment = Alignment.Center,
-                                contentDescription = null, // Không cần mô tả hình ảnh
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .fillMaxWidth()
-                                    .width(40.dp)
-                                    .height(40.dp) // Chiều cao của hình ảnh trong card
-                            )
-                        }
-                    }
-
-                    Order.TYPE_DOUBLE_CHAIR_VIP -> {
-                        if (data.isSpecial) {
-                            Card(
-                                modifier = Modifier
-                                    .padding(start = 20.dp, end = 20.dp)
-                                    .clickable {
-                                        data.isSelectChartLong = !data.isSelectChartLong
-                                        data.date = System.currentTimeMillis()
-                                        viewModel.updateOrder(data)
-                                    },
-                                colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
-                            ) {
-                                val icon: Int = if (data.isSelectChartLong) {
-                                    R.drawable.ic_chair_selected
-                                } else {
-                                    R.drawable.ic_chair_non_select
-                                }
-
-                                Image(
-                                    painter = painterResource(id = icon),
-                                    alignment = Alignment.Center,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .graphicsLayer(rotationZ = -90f)
-                                        .padding(bottom = 30.dp, top = 30.dp)
-                                        .fillMaxWidth()
-                                        .width(20.dp)
-                                        .height(30.dp)
-                                )
-                            }
-                        } else {
-                            DoubleChair(data, viewModel)
-                        }
+                        LongChair(data, viewModel)
                     }
 
                     else -> {
@@ -312,13 +231,56 @@ class MainActivity() : ComponentActivity() {
 
             }
         }
+
+    }
+
+    @Composable
+    private fun LongChair(
+        data: Order,
+        viewModel: MainViewModel
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Table(data)
+            Card(
+                modifier = Modifier
+                    .clickable {
+                        data.isSelectChartLong = !data.isSelectChartLong
+                        data.date = System.currentTimeMillis()
+                        viewModel.updateOrder(data)
+                    },
+                colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
+            ) {
+                val icon: Int = if (data.isSelectChartLong) {
+                    R.drawable.ic_chair_selected
+                } else {
+                    R.drawable.ic_chair_non_select
+                }
+
+                Image(
+                    painter = painterResource(id = icon),
+                    alignment = Alignment.Center,
+                    contentDescription = null, // Không cần mô tả hình ảnh
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth()
+                        .width(34.dp)
+                        .height(34.dp) // Chiều cao của hình ảnh trong card
+                )
+            }
+        }
     }
 
     @Composable
     private fun DoubleChair(
         data: Order,
-        viewModel: MainViewModel
+        viewModel: MainViewModel,
+        isVip: Boolean = false
     ) {
+        val fraction = if (isVip) {
+            0.8f
+        } else {
+            1f
+        }
         AnimatedVisibility(
             visible = data.isShow,
             enter = fadeIn(),
@@ -329,7 +291,7 @@ class MainActivity() : ComponentActivity() {
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(fraction)
                         .padding(
                             top = 0.dp,
                             bottom = 16.dp,
