@@ -1,5 +1,6 @@
 package com.example.apporder
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,11 +33,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,11 +57,10 @@ import com.example.apporder.ui.theme.color5
 import com.example.apporder.ui.theme.color6
 import com.example.apporder.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Calendar
 
 @AndroidEntryPoint
 class MainActivity() : ComponentActivity() {
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -72,7 +74,7 @@ class MainActivity() : ComponentActivity() {
     val sizeTable = 40.dp
     val sizeChair = 18.dp
     val paddingChair = 6.dp
-
+    val datePick = mutableStateOf(System.currentTimeMillis())
 
     @Composable
     private fun MainUi() {
@@ -91,7 +93,7 @@ class MainActivity() : ComponentActivity() {
                         {
                             Text(
                                 text = getString(R.string.app_name),
-                                style = TextStyle(fontSize = 24.sp),
+                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
                                 modifier = Modifier.weight(1f)
                             )
                             ComposeLottieAnimation(
@@ -115,9 +117,14 @@ class MainActivity() : ComponentActivity() {
                                 text = "Số ghế trống : ${countNon.value}",
                                 modifier = Modifier.weight(1f)
                             )
+                            val myDate by datePick
                             Text(
-                                text = System.currentTimeMillis().getDateTime(),
-                                modifier = Modifier.weight(1f),
+                                text = myDate.getDateTime(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        showTimePicker(viewModel)
+                                    },
                                 textAlign = TextAlign.End
                             )
                         }
@@ -175,9 +182,9 @@ class MainActivity() : ComponentActivity() {
         LazyVerticalGrid(
             modifier = modifier,
             columns = GridCells.Fixed(12),
-            contentPadding = PaddingValues(top = 18.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(listLive ?: arrayListOf(), key = { it.id }, span = { item ->
                 val span = when (item.type) {
@@ -222,7 +229,7 @@ class MainActivity() : ComponentActivity() {
                                 thickness = 2.dp, // Độ dày của đường thẳng
                                 modifier = Modifier
                                     .width(80.dp)
-                                    .padding(vertical = 8.dp) // Khoảng cách đường thẳng với các thành phần xung quanh
+                                    .padding(vertical = 4.dp) // Khoảng cách đường thẳng với các thành phần xung quanh
                             )
                         }
 
@@ -245,7 +252,6 @@ class MainActivity() : ComponentActivity() {
                 modifier = Modifier
                     .clickable {
                         data.isSelectChartLong = !data.isSelectChartLong
-                        data.date = System.currentTimeMillis()
                         viewModel.updateOrder(data)
                     },
                 colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
@@ -264,7 +270,7 @@ class MainActivity() : ComponentActivity() {
                         .padding(4.dp)
                         .fillMaxWidth()
                         .width(34.dp)
-                        .height(34.dp) // Chiều cao của hình ảnh trong card
+                        .height(30.dp) // Chiều cao của hình ảnh trong card
                 )
             }
         }
@@ -306,7 +312,6 @@ class MainActivity() : ComponentActivity() {
                             .weight(1f)
                             .clickable {
                                 data.isSelectChart1 = !data.isSelectChart1
-                                data.date = System.currentTimeMillis()
                                 viewModel.updateOrder(data)
                             },
                         colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart1) color4 else color5)
@@ -391,4 +396,22 @@ class MainActivity() : ComponentActivity() {
         )
     }
 
+    fun showTimePicker(viewModel: MainViewModel) {
+        val calendar = Calendar.getInstance()
+        val listener = DatePickerDialog.OnDateSetListener { view, year, month, dayOfMonth ->
+            calendar[Calendar.DAY_OF_MONTH] = dayOfMonth
+            calendar[Calendar.MONTH] = month
+            calendar[Calendar.YEAR] = year
+            viewModel.initData(calendar.timeInMillis)
+            datePick.value = calendar.timeInMillis
+        }
+
+        DatePickerDialog(
+            this,
+            listener,
+            calendar[Calendar.YEAR],
+            calendar[Calendar.MONTH],
+            calendar[Calendar.DAY_OF_MONTH]
+        ).show()
+    }
 }
