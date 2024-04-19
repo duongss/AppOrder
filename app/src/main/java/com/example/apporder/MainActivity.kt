@@ -37,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -161,7 +162,7 @@ class MainActivity() : ComponentActivity() {
 
                         PhotoGrid(viewModel,
                             Modifier
-                                .padding(top = 22.dp)
+                                .padding(top = 28.dp, bottom = 10.dp)
                                 .constrainAs(gridAbove) {
                                     top.linkTo(stageText.bottom)
                                     bottom.linkTo(parent.bottom)
@@ -193,11 +194,11 @@ class MainActivity() : ComponentActivity() {
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
-                        6
+                        12
                     }
 
                     Order.TYPE_DOUBLE_CHAIR_VIP -> {
-                        6
+                        4
                     }
                     else -> {
                         2
@@ -211,7 +212,7 @@ class MainActivity() : ComponentActivity() {
                     }
 
                     Order.TYPE_DOUBLE_CHAIR_VIP -> {
-                        DoubleChair(data, viewModel, true)
+                        DoubleChair(data, viewModel)
                     }
 
                     Order.TYPE_LONG_CHAIR -> {
@@ -246,28 +247,44 @@ class MainActivity() : ComponentActivity() {
         data: Order,
         viewModel: MainViewModel
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Table(data)
-            Card(
-                modifier = Modifier
-                    .clickable {
-                        data.isSelectChartLong = !data.isSelectChartLong
-                        viewModel.updateOrder(data)
-                    },
-                colors = CardDefaults.cardColors(containerColor = if (data.isSelectChartLong) color4 else color5)
-            ) {
-                val icon: Int = if (data.isSelectChartLong) {
-                    R.drawable.ic_chair_selected
-                } else {
-                    R.drawable.ic_chair_non_select
+        Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row() {
+                data.listLongTable.forEach {
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = painterResource(id = imageTable),
+                            contentDescription = "State",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .size(sizeTable)
+                                .clickable {
+                                    it.isSelected = !it.isSelected
+                                    viewModel.updateOrder(data)
+                                },
+                            colorFilter = if (it.isSelected) ColorFilter.tint(Color.Black) else ColorFilter.tint(
+                                Color.Gray
+                            )
+                        )
+                        Text(
+                            text = it.stt.toString(),
+                            style = TextStyle(fontSize = 14.sp, color = Color.White),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
                 }
-
+            }
+            Card(
+                colors = CardDefaults.cardColors(containerColor = if (data.listLongTable.all { it.isSelected }) color4 else color5)
+            ) {
+                val icon: Int = R.drawable.ic_chair_non_select
                 Image(
                     painter = painterResource(id = icon),
                     alignment = Alignment.Center,
                     contentDescription = null, // Không cần mô tả hình ảnh
                     modifier = Modifier
-                        .padding(4.dp)
+                        .padding(8.dp)
                         .fillMaxWidth()
                         .width(34.dp)
                         .height(30.dp) // Chiều cao của hình ảnh trong card
@@ -279,21 +296,17 @@ class MainActivity() : ComponentActivity() {
     @Composable
     private fun DoubleChair(
         data: Order,
-        viewModel: MainViewModel,
-        isVip: Boolean = false
+        viewModel: MainViewModel
     ) {
-        val fraction = if (isVip) {
-            0.8f
-        } else {
-            1f
-        }
+        val fraction = 1f
+
         AnimatedVisibility(
             visible = data.isShow,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Table(data)
+                Table(data, viewModel)
 
                 Row(
                     modifier = Modifier
@@ -309,14 +322,10 @@ class MainActivity() : ComponentActivity() {
                     Card(
                         modifier = Modifier
                             .padding(2.dp)
-                            .weight(1f)
-                            .clickable {
-                                data.isSelectChart1 = !data.isSelectChart1
-                                viewModel.updateOrder(data)
-                            },
-                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart1) color4 else color5)
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(containerColor = if (data.isSelected) color4 else color5)
                     ) {
-                        val icon: Int = if (data.isSelectChart1) {
+                        val icon: Int = if (data.isSelected) {
                             R.drawable.ic_chair_selected
                         } else {
                             R.drawable.ic_chair_non_select
@@ -335,14 +344,10 @@ class MainActivity() : ComponentActivity() {
                     Card(
                         modifier = Modifier
                             .padding(2.dp)
-                            .weight(1f)
-                            .clickable {
-                                data.isSelectChart2 = !data.isSelectChart2
-                                viewModel.updateOrder(data)
-                            },
-                        colors = CardDefaults.cardColors(containerColor = if (data.isSelectChart2) color4 else color5)
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(containerColor = if (data.isSelected) color4 else color5)
                     ) {
-                        val icon: Int = if (data.isSelectChart2) {
+                        val icon: Int = if (data.isSelected) {
                             R.drawable.ic_chair_selected
                         } else {
                             R.drawable.ic_chair_non_select
@@ -364,7 +369,7 @@ class MainActivity() : ComponentActivity() {
     }
 
     @Composable
-    private fun Table(data: Order) {
+    private fun Table(data: Order, viewModel: MainViewModel) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Image(
                 painter = painterResource(id = imageTable),
@@ -372,6 +377,13 @@ class MainActivity() : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxSize()
                     .size(sizeTable)
+                    .clickable {
+                        data.isSelected = !data.isSelected
+                        viewModel.updateOrder(data)
+                    },
+                colorFilter = if (data.isSelected) ColorFilter.tint(Color.Black) else ColorFilter.tint(
+                    Color.Gray
+                )
             )
             Text(
                 text = data.stt.toString(),

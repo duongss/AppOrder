@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -11,14 +12,14 @@ import kotlinx.parcelize.Parcelize
 open class Order(
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var name: String = "",
-    var isSelectChart1: Boolean = false,
-    var isSelectChart2: Boolean = false,
-    var isSelectChartLong: Boolean = false,
+    var isSelected: Boolean = false,
     var isShow: Boolean = true,
     var date: Long = System.currentTimeMillis(),
     var type: Int = TYPE_DOUBLE_CHAIR,
     var isSpecial: Boolean = false,
-    @Ignore var stt: Int = 0
+    @TypeConverters(ConvertersLongTable::class) var listLongTable: ArrayList<LongTable> = arrayListOf(), // of TYPE_LONG_CHAIR
+
+    @Ignore var stt: Int = 0,
 ) : Parcelable {
 
     companion object{

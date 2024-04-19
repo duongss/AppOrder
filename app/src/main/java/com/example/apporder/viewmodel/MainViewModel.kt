@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.apporder.extension.getDateTime
+import com.example.apporder.room.model.LongTable
 import com.example.apporder.room.model.Order
 import com.example.apporder.room.repository.FileDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,9 +15,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(var orderRepository: FileDataRepository) : ViewModel() {
 
-    val numberChairGrid1 = 9
-    val numberChairVip = 2
-    val numberChairLong = 4
+    val numberChairGrid1 = 12
+    val numberChairVip = 3
+    val numberChairLong = 2
     val numberDivide = 6
 
     val numberNonOrder = MutableLiveData<Int>()
@@ -50,6 +51,18 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
                 }
             }
 
+
+            for (i in 0 until numberChairLong) {
+                val longChairs = arrayListOf(LongTable(), LongTable(), LongTable())
+                orderRepository.insertOrder(
+                    Order(
+                        type = Order.TYPE_LONG_CHAIR,
+                        date = timeData,
+                        listLongTable = longChairs
+                    )
+                )
+            }
+
             for (i in 0 until numberChairVip) {
                 orderRepository.insertOrder(
                     Order(
@@ -59,29 +72,40 @@ class MainViewModel @Inject constructor(var orderRepository: FileDataRepository)
                 )
             }
 
-            for (i in 0 until numberChairLong) {
-                orderRepository.insertOrder(Order(type = Order.TYPE_LONG_CHAIR, date = timeData))
-            }
-
             listDb = orderRepository.getAllOrder().filter {
                 it.date.getDateTime() == timeData.getDateTime()
             }
 
         }
 
+        var countOfFalseIsSelect: Int =
+            listDb.count { order -> !order.isSelected && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_LONG_CHAIR && !order.isSpecial }
+
+        listDb.forEach {
+            if (it.isShow && it.type == Order.TYPE_LONG_CHAIR) {
+                it.listLongTable.forEach {
+                    if (!it.isSelected) {
+                        countOfFalseIsSelect += 1
+                    }
+                }
+            }
+        }
+
+        numberNonOrder.postValue(countOfFalseIsSelect)
+
         try {
-            val countOfFalseIsSelect: Int =
-                listDb.count { order -> !order.isSelectChart1 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_LONG_CHAIR && !order.isSpecial } +
-                        listDb.count { order -> !order.isSelectChart2 && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_LONG_CHAIR && !order.isSpecial } +
-                        listDb.count { order -> !order.isSelectChartLong && order.isShow && order.type != Order.TYPE_DIVIDE && order.type != Order.TYPE_ONLY_TABLE && order.type != Order.TYPE_DOUBLE_CHAIR && ((order.type == Order.TYPE_DOUBLE_CHAIR_VIP && order.isSpecial) || order.type == Order.TYPE_LONG_CHAIR) }
-
-            numberNonOrder.postValue(countOfFalseIsSelect)
-
             var c = 1
             listDb.forEach {
                 if (it.isShow && it.type != Order.TYPE_DIVIDE && !it.isSpecial) {
-                    it.stt = c
-                    c++
+                    if (it.type == Order.TYPE_LONG_CHAIR) {
+                        it.listLongTable.forEach {
+                            it.stt = c
+                            c++
+                        }
+                    } else {
+                        it.stt = c
+                        c++
+                    }
                 }
             }
         } catch (e: Exception) {
